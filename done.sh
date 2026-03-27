@@ -11,7 +11,7 @@
 # Just run it. Everything gets saved.
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 GITHUB_USER="Primo217"
 PROJECTS_DIR="$(cd "$(dirname "$0")/.." && pwd)"

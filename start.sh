@@ -12,7 +12,7 @@
 # Just run it. It figures out the rest.
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 GITHUB_USER="Primo217"
 PROJECTS_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -114,6 +114,13 @@ for repo in $REPOS; do
 
   # --- EXISTING REPO: pull latest ---
   echo -n "$repo — "
+
+  # If there are local uncommitted changes, stash them so pull doesn't fail
+  stashed=false
+  if [ -n "$(cd "$repo_dir" && git status --porcelain)" ]; then
+    (cd "$repo_dir" && git stash --quiet 2>/dev/null) && stashed=true
+  fi
+
   output=$(cd "$repo_dir" && git pull 2>&1)
 
   if echo "$output" | grep -q "Already up to date"; then
@@ -126,6 +133,12 @@ for repo in $REPOS; do
   else
     echo -e "${YELLOW}updated${NC}"
     updated=$((updated + 1))
+  fi
+
+  # Restore stashed changes
+  if [ "$stashed" = true ]; then
+    (cd "$repo_dir" && git stash pop --quiet 2>/dev/null)
+    echo -e "  ${YELLOW}(restored your local changes)${NC}"
   fi
 done
 
